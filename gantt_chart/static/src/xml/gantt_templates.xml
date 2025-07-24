@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="FrappeGanttWidget">
+        <div class="frappe-gantt-container" style="height: 100%; width: 100%; padding: 20px;">
+            <div class="gantt-header" style="margin-bottom: 20px;">
+                <h3>Project Gantt Chart</h3>
+                <div class="gantt-controls" style="margin-top: 10px;">
+                    <button class="btn btn-primary btn-sm" onclick="location.reload()">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="gantt-chart" style="min-height: 600px; width: 100%; border: 1px solid #ddd; border-radius: 4px; overflow: auto;"></div>
+            <style>
+                .frappe-gantt-container {
+                    background: white;
+                }
+                .details-container {
+                    padding: 10px;
+                    font-family: Arial, sans-serif;
+                }
+                .details-container h5 {
+                    margin: 0 0 10px 0;
+                    color: #333;
+                }
+                .details-container p {
+                    margin: 5px 0;
+                    color: #666;
+                }
+                .progress-bar {
+                    width: 100%;
+                    height: 10px;
+                    background: #f0f0f0;
+                    border-radius: 5px;
+                    overflow: hidden;
+                    margin-top: 10px;
+                }
+                .progress-fill {
+                    height: 100%;
+                    background: #3498db;
+                    transition: width 0.3s ease;
+                }
+                .priority-high .bar {
+                    fill: #e74c3c !important;
+                }
+                .priority-urgent .bar {
+                    fill: #c0392b !important;
+                }
+                .priority-medium .bar {
+                    fill: #3498db !important;
+                }
+                .priority-low .bar {
+                    fill: #95a5a6 !important;
+                }
+            </style>
+        </div>
+    </t>
+</templates>

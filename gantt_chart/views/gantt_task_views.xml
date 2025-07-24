@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Tree View -->
+        <record id="view_gantt_task_tree" model="ir.ui.view">
+            <field name="name">gantt.task.tree</field>
+            <field name="model">gantt.task</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="progress" widget="progressbar"/>
+                    <field name="priority"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_gantt_task_form" model="ir.ui.view">
+            <field name="name">gantt.task.form</field>
+            <field name="model">gantt.task</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="progress"/>
+                            </group>
+                            <group>
+                                <field name="priority"/>
+                                <field name="color" widget="color"/>
+                                <field name="dependencies"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Description">
+                                <field name="description"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Custom Gantt View -->
+        <!-- views/gantt_task_views.xml -->
+        <record id="action_gantt_task_chart" model="ir.actions.client">
+            <field name="name">Gantt Chart</field>
+            <field name="tag">gantt_chart_widget</field>
+            <field name="target">main</field>
+        </record>
+
+
+        <!-- Action -->
+        <record id="action_gantt_task" model="ir.actions.act_window">
+            <field name="name">Gantt Tasks</field>
+            <field name="res_model">gantt.task</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first Gantt task!
+                </p>
+                <p>
+                    Create tasks with start and end dates to visualize them in the Gantt chart.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>
