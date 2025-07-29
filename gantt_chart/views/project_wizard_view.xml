@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Project Details Wizard Form -->
+        <record id="view_project_details_wizard_form" model="ir.ui.view">
+            <field name="name">project.details.wizard.form</field>
+            <field name="model">project.details.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Project Details">
+                    <header>
+<!--                        <button name="action_create_task"-->
+<!--                                string="Create New Task"-->
+<!--                                type="object"-->
+<!--                                class="btn-primary"-->
+<!--                                icon="fa-plus"/>-->
+                        <button name="action_open_gantt"
+                                string="Open Gantt Chart"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-bar-chart"/>
+<!--                        <button name="action_export_project"-->
+<!--                                string="Export Project"-->
+<!--                                type="object"-->
+<!--                                class="btn-secondary"-->
+<!--                                icon="fa-download"/>-->
+                        <button name="action_refresh"
+                                string="Refresh"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-refresh"/>
+                    </header>
+                    <sheet>
+                        <!-- Project Summary Card -->
+                        <div class="oe_title">
+<!--                            <h1>-->
+<!--                                <field name="project_name" readonly="1"/>-->
+<!--                            </h1>-->
+                            <h3>
+                                Project: <field name="wbs_root" readonly="1" class="oe_inline"/>
+                            </h3>
+                        </div>
+
+                        <!-- Project Statistics -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="panel panel-info">
+                                            <div class="panel-body text-center">
+                                                <h3><field name="total_tasks" readonly="1"/></h3>
+                                                <p>Total Tasks</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="panel panel-success">
+                                            <div class="panel-body text-center">
+                                                <h3><field name="completed_tasks" readonly="1"/></h3>
+                                                <p>Completed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="panel panel-warning">
+                                            <div class="panel-body text-center">
+                                                <h3><field name="in_progress_tasks" readonly="1"/></h3>
+                                                <p>In Progress</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="panel panel-danger">
+                                            <div class="panel-body text-center">
+                                                <h3><field name="delayed_tasks" readonly="1"/></h3>
+                                                <p>Delayed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Timeline -->
+                        <group string="Project Timeline">
+                            <group>
+                                <field name="project_start_date" readonly="1"/>
+                                <field name="project_end_date" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="project_duration" readonly="1" string="Duration (Days)"/>
+<!--                                <field name="overall_progress" readonly="1" widget="percentage"/>-->
+                            </group>
+                        </group>
+
+                        <!-- Progress Visualization -->
+                        <group string="Progress Overview">
+                            <div class="progress" style="height: 30px; margin: 10px 0;">
+<!--                                <div class="progress-bar progress-bar-success"-->
+<!--                                     t-att-style="'width: ' + str(record.overall_progress.raw_value or 0) + '%'">-->
+<!--                                    <field name="overall_progress"/>% Complete-->
+<!--                                </div>-->
+                            </div>
+                        </group>
+
+                        <!-- Task List -->
+                        <notebook>
+                            <page string="All Tasks" name="all_tasks">
+                                <field name="task_ids">
+                                    <tree string="Project Tasks"
+                                          editable="bottom">
+                                        <field name="wbs" readonly="1"/>
+                                        <field name="name" required="1"/>
+                                        <field name="lead"/>
+                                        <field name="start_date" required="1"/>
+                                        <field name="end_date" required="1"/>
+                                        <field name="duration" readonly="1"/>
+                                        <field name="progress"/>
+                                        <field name="priority"/>
+                                        <field name="is_delayed" invisible="1"/>
+<!--                                        <button name="action_edit_task"-->
+<!--                                                string="Edit"-->
+<!--                                                type="object"-->
+<!--                                                icon="fa-edit"-->
+<!--                                                class="btn-primary btn-sm"/>-->
+                                        <button name="action_delete_task"
+                                                type="object"
+                                                icon="fa-trash"
+                                                class="btn-danger btn-sm"
+                                                confirm="Are you sure you want to delete this task?"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page string="Completed Tasks" name="completed_tasks">
+                                <field name="completed_task_ids" readonly="1">
+                                    <tree string="Completed Tasks">
+                                        <field name="wbs"/>
+                                        <field name="name"/>
+                                        <field name="lead"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="duration"/>
+                                        <field name="progress"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page string="Delayed Tasks" name="delayed_tasks">
+                                <field name="delayed_task_ids" readonly="1">
+                                    <tree string="Delayed Tasks">
+                                        <field name="wbs"/>
+                                        <field name="name"/>
+                                        <field name="lead"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="duration"/>
+                                        <field name="progress"/>
+                                        <field name="priority"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+<!--                            <page string="Critical Path" name="critical_path">-->
+<!--                                <field name="critical_task_ids" readonly="1">-->
+<!--                                    <tree string="Critical Tasks">-->
+<!--                                        <field name="wbs"/>-->
+<!--                                        <field name="name"/>-->
+<!--                                        <field name="lead"/>-->
+<!--                                        <field name="start_date"/>-->
+<!--                                        <field name="end_date"/>-->
+<!--                                        <field name="duration"/>-->
+<!--                                        <field name="progress" widget="percentage"/>-->
+<!--                                        <field name="dependencies"/>-->
+<!--                                    </tree>-->
+<!--                                </field>-->
+<!--                            </page>-->
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard Action -->
+        <record id="action_project_details_wizard" model="ir.actions.act_window">
+            <field name="name">Project Details</field>
+            <field name="res_model">project.details.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_project_details_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

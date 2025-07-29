@@ -1,58 +1,102 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
+
+    <!-- Original Frappe Gantt Widget Template -->
     <t t-name="FrappeGanttWidget">
-        <div class="frappe-gantt-container" style="height: 100%; width: 100%; padding: 20px;">
-            <div class="gantt-header" style="margin-bottom: 20px;">
-                <h3>Project Gantt Chart</h3>
-                <div class="gantt-controls" style="margin-top: 10px;">
-                    <button class="btn btn-primary btn-sm" onclick="location.reload()">
+        <div class="gantt-widget-container">
+            <div class="gantt-header">
+                <h3 class="gantt-title" style="font-family: Poppins, sans-serif; font-size: 200px; color: #2c3e50;">
+                    Gantt Chart
+                </h3>
+                <div class="gantt-actions">
+                    <button class="btn btn-primary btn-sm refresh-btn">
                         <i class="fa fa-refresh"></i> Refresh
                     </button>
                 </div>
             </div>
-            <div id="gantt-chart" style="min-height: 600px; width: 100%; border: 1px solid #ddd; border-radius: 4px; overflow: auto;"></div>
-            <style>
-                .frappe-gantt-container {
-                    background: white;
-                }
-                .details-container {
-                    padding: 10px;
-                    font-family: Arial, sans-serif;
-                }
-                .details-container h5 {
-                    margin: 0 0 10px 0;
-                    color: #333;
-                }
-                .details-container p {
-                    margin: 5px 0;
-                    color: #666;
-                }
-                .progress-bar {
-                    width: 100%;
-                    height: 10px;
-                    background: #f0f0f0;
-                    border-radius: 5px;
-                    overflow: hidden;
-                    margin-top: 10px;
-                }
-                .progress-fill {
-                    height: 100%;
-                    background: #3498db;
-                    transition: width 0.3s ease;
-                }
-                .priority-high .bar {
-                    fill: #e74c3c !important;
-                }
-                .priority-urgent .bar {
-                    fill: #c0392b !important;
-                }
-                .priority-medium .bar {
-                    fill: #3498db !important;
-                }
-                .priority-low .bar {
-                    fill: #95a5a6 !important;
-                }
-            </style>
+            <div class="gantt-chart-container">
+                <div id="gantt-chart"></div>
+            </div>
         </div>
     </t>
+
+    <!-- Combined Gantt Widget Template -->
+    <t t-name="CombinedGanttWidget">
+        <div class="combined-gantt-container">
+            <!-- Left Panel - Task List and Form -->
+            <div class="left-panel">
+                <div class="list-container">
+                    <!-- Task list will be dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Right Panel - Gantt Chart -->
+            <div class="right-panel">
+                <div class="gantt-header">
+                    <div class="gantt-title">
+                        <h3><t t-esc="widget.project_name or 'Project Gantt Chart'"/></h3>
+                        <t t-if="widget.wbs_root">
+                            <small class="text-muted">WBS Root: <t t-esc="widget.wbs_root"/></small>
+                        </t>
+                    </div>
+
+                    <div class="gantt-controls">
+                        <!-- View Mode Buttons -->
+                        <div class="view-mode-controls">
+                            <button class="btn btn-sm btn-outline-secondary view-mode-btn" data-view-mode="Day">Day</button>
+                            <button class="btn btn-sm btn-outline-secondary view-mode-btn active" data-view-mode="Week">Week</button>
+                            <button class="btn btn-sm btn-outline-secondary view-mode-btn" data-view-mode="Month">Month</button>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-controls">
+                            <button class="btn btn-sm btn-outline-primary refresh-btn">
+                                <i class="fa fa-refresh"></i> Refresh
+                            </button>
+<!--                            <t t-if="widget.wbs_root">-->
+<!--                                <button class="btn btn-sm btn-success create-task-btn">-->
+<!--                                    <i class="fa fa-plus"></i> Add Task-->
+<!--                                </button>-->
+<!--                            </t>-->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gantt-container">
+                    <div id="gantt-chart"></div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Project Task Summary Template (for homepage) -->
+    <t t-name="ProjectTaskSummary">
+        <div class="project-summary-card">
+            <div class="project-header">
+                <h4><t t-esc="project.name"/></h4>
+                <span class="project-wbs">WBS: <t t-esc="project.wbs"/></span>
+            </div>
+            <div class="project-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Start Date:</span>
+                    <span class="stat-value"><t t-esc="project.start_date"/></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">End Date:</span>
+                    <span class="stat-value"><t t-esc="project.end_date"/></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Duration:</span>
+                    <span class="stat-value"><t t-esc="project.duration"/> days</span>
+                </div>
+            </div>
+            <div class="project-progress">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" t-att-style="'width: ' + (project.progress or 0) + '%'"></div>
+                </div>
+                <span class="progress-text"><t t-esc="project.progress or 0"/>% Complete</span>
+            </div>
+        </div>
+    </t>
+
 </templates>

@@ -1,0 +1,334 @@
+/* Combined Gantt Chart Styles */
+.combined-gantt-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Left Panel - Task List */
+.left-panel {
+    width: 350px;
+    min-width: 300px;
+    max-width: 500px;
+    background: #f8f9fa;
+    border-right: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    resize: horizontal;
+    overflow: hidden;
+}
+
+.left-panel .list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.task-list {
+    height: 100%;
+}
+
+.task-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.task-list-header h4 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.create-task-btn {
+    border-radius: 20px;
+    padding: 5px 15px;
+}
+
+.task-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.task-item.selected {
+    border-color: #007bff;
+    background-color: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.task-name {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.priority-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.priority-low {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.priority-medium {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.priority-high {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.priority-urgent {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.task-details {
+    margin-bottom: 8px;
+}
+
+.task-dates {
+    margin-bottom: 5px;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress {
+    flex: 1;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    min-width: 30px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.task-actions .btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Right Panel - Gantt Chart */
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    overflow: hidden;
+}
+
+.gantt-header {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gantt-title h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.gantt-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.view-mode-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.view-mode-btn {
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 12px;
+}
+
+.view-mode-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.action-controls .btn {
+    border-radius: 20px;
+    padding: 5px 15px;
+}
+
+.gantt-container {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+    background: white;
+}
+
+#gantt-chart {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .combined-gantt-container {
+        flex-direction: column;
+    }
+
+    .left-panel {
+        width: 100%;
+        max-height: 300px;
+        resize: none;
+    }
+
+    .gantt-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .gantt-controls {
+        justify-content: space-between;
+    }
+}
+
+/* Custom scrollbar for left panel */
+.left-panel .list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.left-panel .list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.left-panel .list-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.left-panel .list-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Loading and error states */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #6c757d;
+}
+
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #dc3545;
+}
+
+/* Gantt chart popup custom styles */
+.gantt-container .popup-wrapper {
+    z-index: 1000;
+}
+
+.details-container {
+    padding: 15px;
+    min-width: 200px;
+}
+
+.details-container h5 {
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.details-container p {
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.details-container .progress-bar {
+    height: 4px;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.details-container .progress-fill {
+    height: 100%;
+    background-color: #a3a3ff;
+    transition: width 0.3s ease;
+}
+.table-bordered td, .table-bordered th {
+    border: 1px solid #ccc;
+}
+.gantt-container .grid .row-line {
+    stroke: #ccc;  /* in JS-generated SVG */
+}
+.task-delayed .bar {
+    fill: red !important;
+}
+.gantt .today-highlight {
+  fill: #b3cff5;
+  opacity: 1; }
+

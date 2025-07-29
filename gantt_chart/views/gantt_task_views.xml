@@ -1,73 +1,233 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Tree View -->
-        <record id="view_gantt_task_tree" model="ir.ui.view">
-            <field name="name">gantt.task.tree</field>
+        <!-- Enhanced Homepage Tree View with Project Details Button -->
+        <record id="view_gantt_task_homepage_tree" model="ir.ui.view">
+            <field name="name">gantt.task.homepage.tree</field>
             <field name="model">gantt.task</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree string="Top-Level Projects" create="true" editable="bottom">
+                    <field name="wbs"/>
                     <field name="name"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
-                    <field name="progress" widget="progressbar"/>
+                    <field name="lead"/>
+                    <field name="duration" string="Duration (Days)" class="text-left"/>
+                    <field name="overall_progress" widget="progressbar" class="text-left"/>
                     <field name="priority"/>
+                    <button name="open_project_details"
+                            string="Project Details"
+                            type="object"
+                            class="btn-info"
+                            icon="fa-info-circle"
+                            help="View complete project details, tasks, and statistics"/>
+                    <button name="open_gantt_chart"
+                            string="Open Gantt"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bar-chart"
+                            help="Open Gantt chart view for this project"/>
                 </tree>
             </field>
         </record>
 
-        <!-- Form View -->
+
+         Keep existing task views unchanged
+<!--        <record id="view_gantt_task_tree" model="ir.ui.view">-->
+<!--            <field name="name">gantt.task.tree</field>-->
+<!--            <field name="model">gantt.task</field>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <tree create="true" editable="bottom">-->
+<!--                    <field name="wbs"/>-->
+<!--                    <field name="name"/>-->
+<!--                    <field name="lead"/>-->
+<!--                    <field name="start_date"/>-->
+<!--                    <field name="end_date"/>-->
+<!--                    <field name="duration"/>-->
+<!--                    <field name="progress" widget="progressbar"/>-->
+<!--                    <field name="priority"/>-->
+<!--                    <field name="is_delayed" invisible="1"/>-->
+<!--                </tree>-->
+<!--            </field>-->
+<!--        </record>-->
+
         <record id="view_gantt_task_form" model="ir.ui.view">
             <field name="name">gantt.task.form</field>
             <field name="model">gantt.task</field>
             <field name="arch" type="xml">
-                <form>
+                <form string="Project Task">
+                    <header>
+                        <button name="open_project_details"
+                                type="object"
+                                string="Project Details"
+                                class="btn-info"
+                                icon="fa-info-circle"
+                                help="View complete project overview"/>
+                        <button name="open_gantt_chart"
+                                type="object"
+                                string="Open Project Gantt"
+                                class="btn-primary"
+                                icon="fa-bar-chart"/>
+                        <field name="priority" widget="priority"/>
+                    </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_gantt"
+                                    type="object"
+                                    string="View in Gantt"
+                                    class="oe_stat_button"
+                                    icon="fa-tasks"/>
+                        </div>
+
                         <group>
-                            <group>
-                                <field name="name"/>
-                                <field name="start_date"/>
-                                <field name="end_date"/>
+                            <group name="basic_info">
+                                <field name="wbs" required="1"/>
+                                <field name="name" required="1"/>
+                                <field name="lead"/>
+                                <field name="is_delayed" invisible="1"/>
+                            </group>
+                            <group name="schedule">
+                                <field name="start_date" required="1"/>
+                                <field name="end_date" required="1"/>
+                                <field name="duration" readonly="1"/>
                                 <field name="progress"/>
                             </group>
-                            <group>
-                                <field name="priority"/>
-                                <field name="color" widget="color"/>
-                                <field name="dependencies"/>
+                        </group>
+
+                        <group>
+                            <group name="styling">
+<!--                                <field name="color" widget="color"/>-->
+<!--                                <field name="dependencies" placeholder="e.g., 1,2,3"/>-->
                             </group>
                         </group>
+
                         <notebook>
-                            <page string="Description">
-                                <field name="description"/>
+                            <page string="Description" name="description">
+                                <field name="description" placeholder="Task description and notes..."/>
                             </page>
                         </notebook>
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
                 </form>
             </field>
         </record>
 
-        <!-- Custom Gantt View -->
-        <!-- views/gantt_task_views.xml -->
-        <record id="action_gantt_task_chart" model="ir.actions.client">
-            <field name="name">Gantt Chart</field>
-            <field name="tag">gantt_chart_widget</field>
-            <field name="target">main</field>
-        </record>
+        <!-- Search view for better filtering -->
+        <record id="view_gantt_task_search" model="ir.ui.view">
+            <field name="name">gantt.task.search</field>
+            <field name="model">gantt.task</field>
+            <field name="arch" type="xml">
+                <search string="Search Tasks">
+                    <field name="name" string="Task Name"/>
+                    <field name="wbs" string="WBS Code"/>
+                    <field name="lead" string="Assignee"/>
 
+                    <filter name="my_tasks" string="My Tasks"
+                            domain="[('lead', '=', uid)]"/>
+                    <filter name="delayed_tasks" string="Delayed Tasks"
+                            domain="[('is_delayed', '=', True)]"/>
+                    <filter name="in_progress" string="In Progress"
+                            domain="[('progress', '&gt;', 0), ('progress', '&lt;', 100)]"/>
+                    <filter name="completed" string="Completed"
+                            domain="[('progress', '=', 100)]"/>
 
-        <!-- Action -->
-        <record id="action_gantt_task" model="ir.actions.act_window">
-            <field name="name">Gantt Tasks</field>
-            <field name="res_model">gantt.task</field>
-            <field name="view_mode">tree,form</field>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_smiling_face">
-                    Create your first Gantt task!
-                </p>
-                <p>
-                    Create tasks with start and end dates to visualize them in the Gantt chart.
-                </p>
+                    <separator/>
+                    <filter name="high_priority" string="High Priority"
+                            domain="[('priority', 'in', ['high', 'urgent'])]"/>
+                    <filter name="this_month" string="This Month"
+                            domain="[('start_date', '&gt;=', (context_today).strftime('%Y-%m-01')),
+                                     ('start_date', '&lt;', (context_today + relativedelta(months=1)).strftime('%Y-%m-01'))]"/>
+
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_project" string="Project"
+                                context="{'group_by': 'wbs'}"/>
+                        <filter name="group_by_priority" string="Priority"
+                                context="{'group_by': 'priority'}"/>
+                        <filter name="group_by_lead" string="Assignee"
+                                context="{'group_by': 'lead'}"/>
+                        <filter name="group_by_month" string="Start Month"
+                                context="{'group_by': 'start_date:month'}"/>
+                    </group>
+                </search>
             </field>
         </record>
+
+        <!-- Action for regular task management -->
+<!--        <record id="action_gantt_task_window" model="ir.actions.act_window">-->
+<!--            <field name="name">Gantt Tasks</field>-->
+<!--            <field name="res_model">gantt.task</field>-->
+<!--            <field name="view_mode">tree,form</field>-->
+<!--            <field name="view_id" ref="view_gantt_task_tree"/>-->
+<!--            <field name="search_view_id" ref="view_gantt_task_search"/>-->
+<!--            <field name="context">{-->
+<!--                'search_default_my_tasks': 1,-->
+<!--            }</field>-->
+<!--            <field name="help" type="html">-->
+<!--                <p class="o_view_nocontent_smiling_face">-->
+<!--                    Create your first project task-->
+<!--                </p>-->
+<!--                <p>-->
+<!--                    Tasks are organized by WBS (Work Breakdown Structure) codes.-->
+<!--                    Use codes like "1", "1.1", "1.2" to create project hierarchies.-->
+<!--                </p>-->
+<!--            </field>-->
+<!--        </record>-->
+
+        <!-- Kanban view for tasks (optional) -->
+        <record id="view_gantt_task_kanban" model="ir.ui.view">
+            <field name="name">gantt.task.kanban</field>
+            <field name="model">gantt.task</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="priority" class="o_kanban_small_column">
+                    <field name="wbs"/>
+                    <field name="name"/>
+                    <field name="progress"/>
+                    <field name="priority"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="is_delayed"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="wbs"/>: <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_kanban_record_subtitle text-muted">
+                                        <i class="fa fa-clock-o" title="Duration"/>
+                                        <field name="start_date"/> - <field name="end_date"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div class="progress">
+                                        <div class="progress-bar"
+                                             t-att-style="'width: ' + record.progress.raw_value + '%'"/>
+                                    </div>
+                                    <div class="text-right">
+                                        <small><field name="progress"/>% Complete</small>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="lead" widget="many2one_avatar_user"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <t t-if="record.is_delayed.raw_value">
+                                            <span class="badge badge-danger">Delayed</span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
     </data>
 </odoo>
