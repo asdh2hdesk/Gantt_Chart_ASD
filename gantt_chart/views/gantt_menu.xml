@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Action for Project Homepage -->
-        <record id="action_project_homepage" model="ir.actions.act_window">
-            <field name="name">Projects </field>
-            <field name="res_model">gantt.task</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('wbs', 'not like', '.')]</field> <!-- Only top-level tasks -->
-            <field name="context">{}</field>
-            <field name="view_id" ref="view_gantt_task_homepage_tree"/>
-        </record>
 
         <!-- Top-level menu -->
         <menuitem id="menu_gantt_main" name="Gantt Management" sequence="40"/>
+        <!-- Action for Project Homepage -->
+<!--        <record id="action_project_homepage" model="ir.actions.act_window">-->
+<!--            <field name="name">Projects</field>-->
+<!--            <field name="res_model">gantt.task</field>-->
+<!--            <field name="view_mode">tree,form</field>-->
+<!--            &lt;!&ndash; Only top-level tasks &ndash;&gt;-->
+<!--            <field name="domain">[('wbs', 'not like', '.')]</field>-->
+<!--            <field name="context">{}</field>-->
+<!--            <field name="view_id" ref="view_gantt_task_homepage_tree"/>-->
+<!--        </record>-->
 <!--        <menuitem id="menu_combined_gantt"-->
 <!--          name="Gantt View"-->
 <!--          parent="menu_gantt_main"-->
@@ -26,11 +27,11 @@
                   sequence="5"/>
 
         <!-- Combined Gantt Chart Action (optional, separate from homepage) -->
-        <record id="action_combined_gantt_chart_client" model="ir.actions.client">
-            <field name="name">Combined Gantt Chart</field>
-            <field name="tag">combined_gantt_widget</field>
-            <field name="context">{'default_wbs_root': '1', 'default_project_id': False}</field>
-        </record>
+<!--        <record id="action_combined_gantt_chart_client" model="ir.actions.client">-->
+<!--            <field name="name">Combined Gantt Chart</field>-->
+<!--            <field name="tag">combined_gantt_widget</field>-->
+<!--            <field name="context">{'default_wbs_root': '1', 'default_project_id': False}</field>-->
+<!--        </record>-->
 
         <menuitem id="menu_gantt_root"
                   name="Gantt Chart"

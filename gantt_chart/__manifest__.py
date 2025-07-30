@@ -16,6 +16,7 @@
     'depends': ['base', 'web', 'project', 'mail'],
     'data': [
         'security/ir.model.access.csv',
+        'views/gantt_actions.xml',
         'views/gantt_task_views.xml',
         'views/gantt_menu.xml',
         'views/project_wizard_view.xml'
