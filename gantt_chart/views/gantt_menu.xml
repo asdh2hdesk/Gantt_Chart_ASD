@@ -9,7 +9,6 @@
 <!--            <field name="name">Projects</field>-->
 <!--            <field name="res_model">gantt.task</field>-->
 <!--            <field name="view_mode">tree,form</field>-->
-<!--            &lt;!&ndash; Only top-level tasks &ndash;&gt;-->
 <!--            <field name="domain">[('wbs', 'not like', '.')]</field>-->
 <!--            <field name="context">{}</field>-->
 <!--            <field name="view_id" ref="view_gantt_task_homepage_tree"/>-->
