@@ -327,11 +327,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                             <button class="btn btn-sm btn-success project-selector-btn" title="Switch Project">
                                 <i class="fa fa-exchange"></i>
                             </button>
-//                            <button class="btn btn-sm btn-info project-details-btn"
-//                                    data-wbs-root="${this.wbs_root}"
-//                                    title="Project Details">
-//                                Edit
-//                            </button>
                             <button class="btn btn-sm btn-primary export-btn" data-wbs-root="${this.wbs_root}" title="Export Project">
                                 Export
                             </button>
