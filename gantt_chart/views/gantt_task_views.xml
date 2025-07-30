@@ -21,12 +21,13 @@
                             class="btn-info"
                             icon="fa-info-circle"
                             help="View complete project details, tasks, and statistics"/>
-                    <button name="open_gantt_chart"
+                    <button name="gantt_chart.action_combined_gantt_chart_client"
                             string="Open Gantt"
-                            type="object"
+                            type="action"
                             class="btn-primary"
                             icon="fa-bar-chart"
-                            help="Open Gantt chart view for this project"/>
+                            help="Open Gantt chart view for this project"
+                            context="{'default_project_id': id, 'default_wbs_root': wbs}"/>
                 </tree>
             </field>
         </record>

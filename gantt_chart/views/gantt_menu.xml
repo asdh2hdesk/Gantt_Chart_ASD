@@ -13,6 +13,11 @@
 
         <!-- Top-level menu -->
         <menuitem id="menu_gantt_main" name="Gantt Management" sequence="40"/>
+<!--        <menuitem id="menu_combined_gantt"-->
+<!--          name="Gantt View"-->
+<!--          parent="menu_gantt_main"-->
+<!--          action="action_combined_gantt_chart_client"-->
+<!--          sequence="10"/>-->
 
         <menuitem id="menu_project_homepage"
                   name="Projects"
