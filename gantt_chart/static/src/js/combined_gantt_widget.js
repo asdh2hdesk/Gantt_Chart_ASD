@@ -33,7 +33,48 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                 this._setupEventListeners();
                 this._renderStyles();
                 this._loadProjectData();
+                this._setupScrollSync();
             });
+        },
+
+        _setupScrollSync: function () {
+            const self = this;
+            setTimeout(function () {
+                const leftPanelEl = self.$('.left-panel')[0];
+                const ganttContainerEl = self.$('.gantt-container')[0];
+
+                console.log('Left Panel Element:', leftPanelEl,
+                            'OffsetHeight:', leftPanelEl ? leftPanelEl.offsetHeight : 'N/A',
+                            'ScrollHeight:', leftPanelEl ? leftPanelEl.scrollHeight : 'N/A',
+                            'ClientHeight:', leftPanelEl ? leftPanelEl.clientHeight : 'N/A',
+                            'ScrollTop:', leftPanelEl ? leftPanelEl.scrollTop : 'N/A');
+                console.log('Gantt Container Element:', ganttContainerEl,
+                            'OffsetHeight:', ganttContainerEl ? ganttContainerEl.offsetHeight : 'N/A',
+                            'ScrollHeight:', ganttContainerEl ? ganttContainerEl.scrollHeight : 'N/A',
+                            'ClientHeight:', ganttContainerEl ? ganttContainerEl.clientHeight : 'N/A',
+                            'ScrollTop:', ganttContainerEl ? ganttContainerEl.scrollTop : 'N/A');
+
+                if (leftPanelEl && ganttContainerEl) {
+                    console.log('Attaching scroll listeners to left panel and Gantt container...');
+                    const leftScrollHandler = () => {
+                        console.log('Left panel scrolled, setting Gantt scrollTop to:', leftPanelEl.scrollTop);
+                        ganttContainerEl.scrollTop = leftPanelEl.scrollTop;
+                    };
+                    const ganttScrollHandler = () => {
+                        console.log('Gantt scrolled, setting Left panel scrollTop to:', ganttContainerEl.scrollTop);
+                        leftPanelEl.scrollTop = ganttContainerEl.scrollTop;
+                    };
+
+                    leftPanelEl.addEventListener("scroll", leftScrollHandler);
+                    ganttContainerEl.addEventListener("scroll", ganttScrollHandler);
+
+                    // Optional: Test manual scroll to trigger event
+                    leftPanelEl.scrollTop = 10; // Force a scroll to test
+                    console.log('Forced scroll test, new Left panel scrollTop:', leftPanelEl.scrollTop);
+                } else {
+                    console.error('One or both elements not found for scroll synchronization');
+                }
+            }, 500); // Delay to ensure DOM is ready
         },
 
         _detectWBSRoot: function () {
@@ -843,7 +884,8 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         display: flex;
                         flex-direction: column;
                         overflow: hidden; /* Remove individual scrolling */
-                        overflow-y: visible; /* Allow scrolling but hide scrollbar */
+                        overflow-x: auto;
+                        overflow-y: auto; /* Allow scrolling but hide scrollbar */
                         scrollbar-width: none; /* Firefox */
                         -ms-overflow-style: none; /* IE/Edge */
                     }
@@ -860,7 +902,7 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         display: flex;
                         flex-direction: column;
                         overflow-x: auto; /* Keep horizontal scroll for Gantt */
-//                        overflow-y: visible; /* Remove vertical scrolling */
+                        overflow-y: auto; /* Remove vertical scrolling */
                         box-sizing: border-box;
                         scrollbar-width: none;
 
@@ -882,10 +924,11 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         flex: 1;
                         padding: 0;
                         overflow-x: auto; /* Independent horizontal scrolling */
-                        overflow-y: visible; /* No vertical scrolling */
+                        overflow-y: auto; /* No vertical scrolling */
                         background-color: #fff;
                         scrollbar-width: none;
                         -ms-overflow-style: none;
+                        font-size: 12px; /* Match gantt chart font size */
                     }
                     .gantt-container::-webkit-scrollbar {
                         display: none;
@@ -897,22 +940,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         color: #343a40;
 
                     }
-    //                .gantt-container::-webkit-scrollbar {
-    //                    height: 8px;
-    //                }
-    //
-    //                .gantt-container::-webkit-scrollbar-track {
-    //                    background: #f1f1f1;
-    //                }
-    //
-    //                .gantt-container::-webkit-scrollbar-thumb {
-    //                    background: #c1c1c1;
-    //                    border-radius: 4px;
-    //                }
-    //
-    //                .gantt-container::-webkit-scrollbar-thumb:hover {
-    //                    background: #a8a8a8;
-    //                }
 
                     .task-list-header {
                         display: flex;
@@ -921,6 +948,9 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         padding: 10px 10px;
                         background-color: white;
                         border-bottom: 1px solid #dee2e6;
+                        position: sticky;
+                        top: 0;
+                        z-index: 11;
                     }
 
                     .project-actions {
@@ -934,28 +964,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         background-color: transparent;
                     }
 
-//                    .project-title {
-//                        font-size: 1.1em;
-//                        color: #333;
-//                        background-color: #f8f9fa;
-//                        padding-top: 100px;
-//                        margin: 0;
-//                        user-select: none;
-//                        transition: background-color 0.3s ease;
-//                        display: flex;
-//                        justify-content: space-between;
-//                        align-items: center;
-//                    }
-
-    //                .project-title:hover {
-    //                    background-color: #e9ecef;
-    //                }
-
-//                    .selected-project .project-title {
-//                        background-color: #d4edda;
-//                        font-weight: bold;
-//                    }
-
                     .project-caret {
                         transition: transform 0.3s ease;
                     }
@@ -966,7 +974,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     }
 
                     .project-tasks {
-//                        padding-left: 10px;
                         transition: all 0.3s ease;
                         overflow: visible;
                     }
@@ -978,30 +985,41 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     .task-table {
                         width: 100%;
                         background-color: white;
-
+                        font-size: 12px; /* Match gantt chart font size */
+                        border-collapse: collapse;
                     }
 
                     .task-table thead {
-                        background-color: #f8f9fa;
-                        border-bottom: 1px solid #dee2e6;
-    //                    overflow-x: flex;
+                        background-color: #ffffff; /* Match gantt grid-header fill */
+                        border-bottom: 1px solid #e0e0e0; /* Match gantt grid-header stroke */
+                        position: sticky;
+                        top: 0;
+                        z-index: 10;
                     }
 
                     .task-table th {
                         text-align: left;
                         font-weight: 600;
-                        color: #495057;
-                        border-right: 1px solid #dee2e6;
-                        font-size: 0.9em;
-                        height: 37px;
-    //                    padding: 10px 8px;
+                        color: #555; /* Match gantt text colors */
+                        border-right: 1px solid #e0e0e0; /* Match gantt stroke color */
+                        font-size: 12px; /* Match gantt chart font size */
+                        height: 35px; /* Much smaller to match gantt */
+                        padding: 6px 8px;
+                        line-height: 1.2;
+                        position: sticky;
+                        top: 0;
+                        background-color: #ffffff;
                     }
 
                     .task-table tbody tr {
-                        border-bottom: 1px solid #dee2e6;
+                        border-bottom: 1px solid #ebeff2; /* Match gantt row-line stroke */
                         transition: background-color 0.2s ease;
-                        height: 37px;
-                        background-color: #fff;
+                        height: 37px; /* Much smaller to match gantt */
+                        background-color: #ffffff; /* Match gantt grid-row fill */
+                    }
+
+                    .task-table tbody tr:nth-child(even) {
+                        background-color: #f5f5f5; /* Match gantt alternating row color */
                     }
 
                     .task-table tbody tr:hover {
@@ -1013,12 +1031,14 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     }
 
                     .task-table td {
-                        padding: 8px;
-                        color: #495057;
-                        border-right: 1px solid #dee2e6;
-                        font-size: 0.9em;
-                        height: 37px;
+                        padding: 6px 8px;
+                        color: #555; /* Match gantt text color */
+                        border-right: 1px solid #e0e0e0; /* Match gantt stroke color */
+                        font-size: 12px; /* Match gantt chart font size */
+                        height: 35px; /* Much smaller to match gantt */
                         white-space: nowrap;
+                        line-height: 1.2;
+                        vertical-align: middle; /* Center content vertically */
                     }
 
                     .task-row {
@@ -1062,7 +1082,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     }
                     .task-list {
                         overflow: visible;
-    //                    overflow-y: auto;
                         scrollbar-width: none;
                         -ms-overflow-style: none;
                     }
@@ -1116,7 +1135,7 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         width: 100%;
                         border: none;
                         padding: 4px;
-                        font-size: 12px;
+                        font-size: 12px; /* Match gantt chart font size */
                         background: white;
                         border: 2px solid #007bff;
                         border-radius: 3px;
@@ -1243,18 +1262,18 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
 //            });
 
             // Synchronize vertical scroll between left panel and Gantt chart
-            const leftPanelEl = this.$('.left-panel')[0];
-            const ganttContainerEl = this.$('.gantt-container')[0];
-
-            if (leftPanelEl && ganttContainerEl) {
-                leftPanelEl.addEventListener("scroll", () => {
-                    ganttContainerEl.scrollTop = leftPanelEl.scrollTop;
-                });
-
-                ganttContainerEl.addEventListener("scroll", () => {
-                    leftPanelEl.scrollTop = ganttContainerEl.scrollTop;
-                });
-            }
+//            const leftPanelEl = this.$('.task-table')[0];
+//            const ganttContainerEl = this.$('.gantt-container')[0];
+//
+//            if (leftPanelEl && ganttContainerEl) {
+//                leftPanelEl.addEventListener("scroll", () => {
+//                    ganttContainerEl.scrollTop = leftPanelEl.scrollTop;
+//                });
+//
+//                ganttContainerEl.addEventListener("scroll", () => {
+//                    leftPanelEl.scrollTop = ganttContainerEl.scrollTop;
+//                });
+//            }
 //            this.$('.left-panel').on('click', '.task-row', (e) => {
 //                // Don't trigger if clicking on editable cell
 //                if ($(e.target).hasClass('editable')) return;
@@ -1268,7 +1287,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
 //                    // this._editTask(taskId);
 //                }
 //            });
-
         },
 
         _highlightTask: function (taskId) {
