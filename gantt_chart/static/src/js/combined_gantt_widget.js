@@ -327,11 +327,11 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                             <button class="btn btn-sm btn-success project-selector-btn" title="Switch Project">
                                 <i class="fa fa-exchange"></i>
                             </button>
-                            <button class="btn btn-sm btn-info project-details-btn"
-                                    data-wbs-root="${this.wbs_root}"
-                                    title="Project Details">
-                                Edit
-                            </button>
+//                            <button class="btn btn-sm btn-info project-details-btn"
+//                                    data-wbs-root="${this.wbs_root}"
+//                                    title="Project Details">
+//                                Edit
+//                            </button>
                             <button class="btn btn-sm btn-primary export-btn" data-wbs-root="${this.wbs_root}" title="Export Project">
                                 Export
                             </button>
@@ -504,26 +504,233 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     <td class="wbs-cell">
                         ${record.wbs}
                     </td>
-                    <td class="name-cell">
+                    <td class="name-cell editable" data-field="name" data-task-id="${record.id}">
                         ${record.name}
                     </td>
-                    <td class="start-cell">
+                    <td class="start-cell editable" data-field="start_date" data-task-id="${record.id}">
                         ${startDate}
                     </td>
-                    <td class="end-cell">
+                    <td class="end-cell editable" data-field="end_date" data-task-id="${record.id}">
                         ${endDate}
                     </td>
-                    <td class="lead-cell">
+                    <td class="lead-cell editable" data-field="lead" data-task-id="${record.id}">
                         ${assignee}
                     </td>
                     <td class="duration-cell">
                         ${duration}
                     </td>
-                    <td class="progress-cell">
+                    <td class="progress-cell editable" data-field="progress" data-task-id="${record.id}">
                         ${progress}%
                     </td>
                 </tr>
             `;
+        },
+        _makeEditable: function(event) {
+            const cell = $(event.target);
+            const field = cell.data('field');
+            const taskId = cell.data('task-id');
+
+            // Don't make the same cell editable twice
+            if (cell.find('input, select').length > 0) return;
+
+            // Find the original task data
+            const task = this.allTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const originalValue = this._getFieldValue(task, field);
+
+            let inputElement;
+            if (field === 'lead') {
+                // Create dropdown for assignee with dynamic user list
+                inputElement = $('<select>');
+                inputElement.append('<option value="Unassigned">Unassigned</option>');
+
+                // Load users dynamically
+                this._rpc({
+                    model: 'res.users',
+                    method: 'search_read',
+                    args: [[], ['name']],
+                }).then((users) => {
+                    users.forEach(user => {
+                        const selected = user.name === originalValue ? 'selected' : '';
+                        inputElement.append(`<option value="${user.name}" ${selected}>${user.name}</option>`);
+                    });
+                }).catch((error) => {
+                    console.error('Error loading users:', error);
+                    // Fallback to static list
+                    const assignees = ['Akshat', 'Sagar', 'Administrator', 'Balaji'];
+                    assignees.forEach(assignee => {
+                        const selected = assignee === originalValue ? 'selected' : '';
+                        inputElement.append(`<option value="${assignee}" ${selected}>${assignee}</option>`);
+                    });
+                });
+
+            } else if (field === 'start_date' || field === 'end_date') {
+                // Create date input
+                inputElement = $('<input type="date">');
+                const dateValue = this._convertToDateInput(task[field]);
+                inputElement.val(dateValue);
+            } else if (field === 'progress') {
+                // Create number input for progress
+                inputElement = $('<input type="number" min="0" max="100">');
+                inputElement.val(task.progress || 0);
+            } else {
+                // Create text input
+                inputElement = $('<input type="text">');
+                inputElement.val(originalValue);
+            }
+
+            // Style the input
+            inputElement.css({
+                'width': '100%',
+                'border': '2px solid #007bff',
+                'padding': '4px',
+                'font-size': '12px'
+            });
+
+            // Replace cell content with input
+            cell.html(inputElement);
+            cell.addClass('edit-mode');
+            inputElement.focus();
+
+            // Save on Enter, cancel on Escape
+            inputElement.on('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this._saveEdit(cell, inputElement, task, field);
+                } else if (e.key === 'Escape') {
+                    this._cancelEdit(cell, originalValue);
+                }
+            });
+
+            // Save when clicking outside
+            inputElement.on('blur', () => {
+                setTimeout(() => this._saveEdit(cell, inputElement, task, field), 100);
+            });
+        },
+
+        _getFieldValue: function(task, field) {
+            if (field === 'lead') {
+                return task.lead && Array.isArray(task.lead) && task.lead.length > 1 ? task.lead[1] : 'Unassigned';
+            } else if (field === 'start_date' || field === 'end_date') {
+                return this._formatDate(task[field]);
+            } else if (field === 'progress') {
+                return task.progress || 0;
+            }
+            return task[field] || '';
+        },
+
+        _saveEdit: function(cell, inputElement, task, field) {
+            const newValue = inputElement.val();
+
+            // Handle lead field separately since it's a Many2one relation
+            if (field === 'lead') {
+                this._updateLeadField(cell, newValue, task);
+                return;
+            }
+
+            // Prepare the update data for other fields
+            const updateData = {};
+            if (field === 'start_date' || field === 'end_date') {
+                updateData[field] = newValue;
+            } else if (field === 'progress') {
+                updateData[field] = parseInt(newValue) || 0;
+            } else {
+                updateData[field] = newValue;
+            }
+
+            // Update in Odoo
+            this._rpc({
+                model: 'gantt.task',
+                method: 'write',
+                args: [task.id, updateData],
+            }).then(() => {
+                console.log('Task updated successfully');
+
+                // Update local data
+                task[field] = updateData[field];
+
+                // Update display
+                let displayValue = newValue;
+                if (field === 'start_date' || field === 'end_date') {
+                    displayValue = this._formatDate(newValue);
+                } else if (field === 'progress') {
+                    displayValue = newValue + '%';
+                }
+
+                cell.html(displayValue);
+                cell.removeClass('edit-mode');
+
+                // Refresh Gantt chart if dates or progress changed
+                if (field === 'start_date' || field === 'end_date' || field === 'progress') {
+                    this._renderGanttWithFilteredTasks();
+                }
+
+            }).catch((error) => {
+                console.error('Error updating task:', error);
+                alert('Error updating task: ' + error.message);
+                this._cancelEdit(cell, this._getFieldValue(task, field));
+            });
+        },
+
+        // ADD this new method to handle lead field updates:
+
+        _updateLeadField: function(cell, newValue, task) {
+            if (newValue === 'Unassigned') {
+                // Set lead to false/null for unassigned
+                this._rpc({
+                    model: 'gantt.task',
+                    method: 'write',
+                    args: [task.id, { lead: false }],
+                }).then(() => {
+                    console.log('Lead updated to unassigned');
+                    task.lead = false;
+                    cell.html('Unassigned');
+                    cell.removeClass('edit-mode');
+                }).catch((error) => {
+                    console.error('Error updating lead:', error);
+                    alert('Error updating lead: ' + error.message);
+                    this._cancelEdit(cell, this._getFieldValue(task, 'lead'));
+                });
+            } else {
+                // Search for user by name and get their ID
+                this._rpc({
+                    model: 'res.users',
+                    method: 'search',
+                    args: [[['name', '=', newValue]]],
+                }).then((userIds) => {
+                    if (userIds.length > 0) {
+                        const userId = userIds[0];
+                        return this._rpc({
+                            model: 'gantt.task',
+                            method: 'write',
+                            args: [task.id, { lead: userId }],
+                        }).then(() => {
+                            console.log('Lead updated successfully');
+                            task.lead = [userId, newValue];
+                            cell.html(newValue);
+                            cell.removeClass('edit-mode');
+                        });
+                    } else {
+                        throw new Error(`User "${newValue}" not found`);
+                    }
+                }).catch((error) => {
+                    console.error('Error updating lead:', error);
+                    alert('Error updating lead: ' + error.message);
+                    this._cancelEdit(cell, this._getFieldValue(task, 'lead'));
+                });
+            }
+        },
+
+        _cancelEdit: function(cell, originalValue) {
+            cell.html(originalValue);
+            cell.removeClass('edit-mode');
+        },
+
+        _convertToDateInput: function(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
         },
 
         _expandProject: function(wbsRoot) {
@@ -895,6 +1102,39 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         background-color: #2196f3;
                         border-radius: 0 4px 4px 0;
                     }
+                    .editable {
+                        cursor: pointer;
+                        position: relative;
+                    }
+
+                    .editable:hover {
+                        background-color: #fff3cd !important;
+                        border: 1px dashed #ffc107;
+                    }
+
+                    .edit-mode {
+                        background-color: #e3f2fd !important;
+                        padding: 0 !important;
+                    }
+
+                    .edit-mode input, .edit-mode select {
+                        width: 100%;
+                        border: none;
+                        padding: 4px;
+                        font-size: 12px;
+                        background: white;
+                        border: 2px solid #007bff;
+                        border-radius: 3px;
+                    }
+
+                    .task-row .editable {
+                        transition: background-color 0.2s ease;
+                    }
+
+                    /* Update existing task-row hover to not override editable hover */
+                    .task-table tbody tr:hover .editable:not(:hover) {
+                        background-color: #f8f9fa;
+                    }
 
                 </style>
             `;
@@ -904,6 +1144,7 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
         _setupEventListeners: function () {
             // Remove any existing event handlers to prevent duplicates
             this.$('.left-panel').off();
+            this.$('.gantt-header').off();
             this.$('.gantt-header').on('click', '.view-mode-btn', (e) => {
                 const viewMode = $(e.currentTarget).data('view-mode');
                 this._changeViewMode(viewMode);
@@ -917,31 +1158,31 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
             });
 
             // Project details button click events
-            this.$('.left-panel').on('click', '.project-details-btn', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const wbsRoot = $(e.currentTarget).data('wbs-root');
-                console.log('Clicked project details for:', wbsRoot);
-
-                if (!wbsRoot) {
-                    console.error('No WBS root found for project details button');
-                    return;
-                }
-
-                // Call the model method
-                this._rpc({
-                    model: 'gantt.task',
-                    method: 'open_project_detail',
-                    args: [ ],
-                }).then((action) => {
-                    if (action) {
-                        this.do_action(action);
-                    }
-                }).catch((error) => {
-                    console.error('Error opening project details:', error);
-                });
-            });
+//            this.$('.left-panel').on('click', '.project-details-btn', (e) => {
+//                e.preventDefault();
+//                e.stopPropagation();
+//
+//                const wbsRoot = $(e.currentTarget).data('wbs-root');
+//                console.log('Clicked project details for:', wbsRoot);
+//
+//                if (!wbsRoot) {
+//                    console.error('No WBS root found for project details button');
+//                    return;
+//                }
+//
+//                // Call the model method
+//                this._rpc({
+//                    model: 'gantt.task',
+//                    method: 'open_project_detail',
+//                    args: [ ],
+//                }).then((action) => {
+//                    if (action) {
+//                        this.do_action(action);
+//                    }
+//                }).catch((error) => {
+//                    console.error('Error opening project details:', error);
+//                });
+//            });
 
             this.$('.left-panel').on('click', '.export-btn', (e) => {
                 e.preventDefault();
@@ -982,24 +1223,29 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
 
             // Task row click events
             this.$('.left-panel').on('click', '.task-row', (e) => {
+                if ($(e.target).hasClass('editable')) return;
                 const taskId = $(e.currentTarget).data('task-id');
                 console.log('Clicked task:', taskId);
 
                 if (taskId) {
                     this._highlightTask(taskId);
-                    this._editTask(taskId);
+//                    this._editTask(taskId);
                 }
             });
-
-            this.$('.left-panel').on('click', '.task-row', (e) => {
-                const taskId = $(e.currentTarget).data('task-id');
-                console.log('Clicked task:', taskId);
-
-                if (taskId) {
-                    this._highlightTask(taskId);
-                    this._editTask(taskId);
-                }
+            this.$('.left-panel').on('click', '.editable', (e) => {
+                e.stopPropagation(); // Prevent row click
+                this._makeEditable(e);
             });
+
+//            this.$('.left-panel').on('click', '.task-row', (e) => {
+//                const taskId = $(e.currentTarget).data('task-id');
+//                console.log('Clicked task:', taskId);
+//
+//                if (taskId) {
+//                    this._highlightTask(taskId);
+//                    this._editTask(taskId);
+//                }
+//            });
 
             // Synchronize vertical scroll between left panel and Gantt chart
             const leftPanelEl = this.$('.left-panel')[0];
@@ -1014,6 +1260,19 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     leftPanelEl.scrollTop = ganttContainerEl.scrollTop;
                 });
             }
+//            this.$('.left-panel').on('click', '.task-row', (e) => {
+//                // Don't trigger if clicking on editable cell
+//                if ($(e.target).hasClass('editable')) return;
+//
+//                const taskId = $(e.currentTarget).data('task-id');
+//                console.log('Clicked task:', taskId);
+//
+//                if (taskId) {
+//                    this._highlightTask(taskId);
+//                    // REMOVE the _editTask call since we now have inline editing
+//                    // this._editTask(taskId);
+//                }
+//            });
 
         },
 
@@ -1281,20 +1540,20 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
             `);
         },
 
-        _onTaskClick: function (task) {
-            if (!task || !task.id) {
-                console.error('Invalid task for click event:', task);
-                return;
-            }
-
-            // Highlight in left panel
-            this._highlightTask(parseInt(task.id));
-
-            // Edit task
-            this._editTask(parseInt(task.id));
-            // Refresh data after a delay
-            setTimeout(() => this._refreshData(), 2000);
-        },
+//        _onTaskClick: function (task) {
+//            if (!task || !task.id) {
+//                console.error('Invalid task for click event:', task);
+//                return;
+//            }
+//
+//            // Highlight in left panel
+//            this._highlightTask(parseInt(task.id));
+//
+//            // Edit task
+//            this._editTask(parseInt(task.id));
+//            // Refresh data after a delay
+//            setTimeout(() => this._refreshData(), 2000);
+//        },
 
         _onDateChange: function (task, start, end) {
             if (!task || !task.id) {
