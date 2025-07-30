@@ -1373,7 +1373,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     }
                 });
 
-                // If no dates found, create a default range
                 if (!projectStart) projectStart = new Date();
                 if (!projectEnd) {
                     projectEnd = new Date(projectStart);
@@ -1412,7 +1411,6 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
             // Create the Excel with colored Gantt chart
             const createGanttExcel = async () => {
                 try {
-                    // Load ExcelJS dynamically if not already loaded
                     if (typeof ExcelJS === 'undefined') {
                         const loadExcelJS = this._loadExcelJS || function() {
                             return new Promise((resolve, reject) => {
@@ -1432,18 +1430,30 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                     const workbook = new ExcelJS.Workbook();
                     const sheet = workbook.addWorksheet('Project Gantt Chart');
 
-                    // Column headers
-                    const headers = ['WBS', 'TASK', 'LEAD', 'START', 'END', 'DAYS', '% DONE', 'DURATION', ''];
+                    // Simple header row
+                    const headers = ['Project Name', 'Start Date', 'End Date', 'WBS', 'Task', 'Lead', 'Start', 'End', 'Days', '% Done', 'Duration', ''];
                     dateColumns.forEach(date => headers.push(formatDate(date)));
-                    sheet.addRow(headers);
+                    const headerRow = sheet.addRow(headers);
+                    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    headerRow.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF4A90E2' } // Blue background
+                    };
 
                     // Set column widths
-                    const widths = [8, 25, 15, 12, 12, 8, 10, 10, 2].concat(dateColumns.map(() => 3));
+                    const widths = [15, 12, 12, 8, 25, 15, 12, 12, 8, 10, 10, 2].concat(dateColumns.map(() => 3));
                     widths.forEach((w, i) => sheet.getColumn(i + 1).width = w);
 
-                    // Task rows with colored Gantt cells
-                    tasks.forEach(task => {
+                    // Freeze the header row
+                    sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'A2' }];
+
+                    // Task rows with colored Gantt cells and gaps
+                    tasks.forEach((task, index) => {
                         const rowValues = [
+                            `Project ${wbsRoot}`, // Project Name
+                            task.start_date || projectStart.toLocaleDateString(), // Start Date
+                            task.end_date || projectEnd.toLocaleDateString(), // End Date
                             task.wbs,
                             task.name,
                             task.lead ? task.lead[1] : '',
@@ -1458,22 +1468,25 @@ odoo.define('dynamic_gantt_frappe.combined_widget', function (require) {
                         // Push blanks for each Gantt date
                         dateColumns.forEach(() => rowValues.push(''));
                         const row = sheet.addRow(rowValues);
-                        row.height = 20; // Makes colored cells look like bars
+                        row.height = 20; // Base height for task row
 
                         // Fill colors for each task duration
                         dateColumns.forEach((date, idx) => {
                             if (isDateInTask(date, task.start_date, task.end_date)) {
-                                const cell = row.getCell(10 + idx); // First date column is 10th
-                                cell.value = '━';
-                                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                                cell.font = { name: 'Consolas', size: 48, color: { argb: 'FF77A651' }  }; // Monospace font for alignment
+                                const cell = row.getCell(13 + idx); // First date column is 13th (after 12 headers)
                                 cell.fill = {
                                     type: 'pattern',
                                     pattern: 'solid',
-                                    fgColor: { argb: task.progress >= 100 ? '' : '' } // Completed vs Planned
+                                    fgColor: { argb: 'FF77A651' } // Consistent green fill
                                 };
                             }
                         });
+
+                        // Add an empty row for gap (except after the last task)
+                        if (index < tasks.length - 1) {
+                            const emptyRow = sheet.addRow([]);
+                            emptyRow.height = 5; // Small gap height
+                        }
                     });
 
                     // Save Excel

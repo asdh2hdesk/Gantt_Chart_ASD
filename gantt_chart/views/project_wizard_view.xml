@@ -93,22 +93,24 @@
                         </group>
 
                         <!-- Progress Visualization -->
-                        <group string="Progress Overview">
-                            <div class="progress" style="height: 30px; margin: 10px 0;">
-<!--                                <div class="progress-bar progress-bar-success"-->
-<!--                                     t-att-style="'width: ' + str(record.overall_progress.raw_value or 0) + '%'">-->
-<!--                                    <field name="overall_progress"/>% Complete-->
-<!--                                </div>-->
-                            </div>
-                        </group>
+<!--                        <group string="Progress Overview">-->
+<!--                            <div class="progress" style="height: 30px; margin: 10px 0;">-->
+<!--&lt;!&ndash;                                <div class="progress-bar progress-bar-success"&ndash;&gt;-->
+<!--&lt;!&ndash;                                     t-att-style="'width: ' + str(record.overall_progress.raw_value or 0) + '%'">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="overall_progress"/>% Complete&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+<!--                            </div>-->
+<!--                        </group>-->
 
                         <!-- Task List -->
                         <notebook>
                             <page string="All Tasks" name="all_tasks">
-                                <field name="task_ids">
+                                <field name="task_ids" mode="tree">
                                     <tree string="Project Tasks"
-                                          editable="bottom">
-                                        <field name="wbs" readonly="1"/>
+                                          editable="bottom"
+                                          create="true"
+                                          delete="false">
+                                        <field name="wbs" required="1"/>
                                         <field name="name" required="1"/>
                                         <field name="lead"/>
                                         <field name="start_date" required="1"/>
@@ -176,6 +178,15 @@
 <!--                            </page>-->
                         </notebook>
                     </sheet>
+                    <footer>
+                        <button name="action_save_and_close"
+                                string="Save &amp; Close"
+                                type="object"
+                                class="btn-primary"/>
+                        <button string="Cancel"
+                                class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
                 </form>
             </field>
         </record>

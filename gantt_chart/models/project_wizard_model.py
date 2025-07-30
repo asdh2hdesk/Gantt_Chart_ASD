@@ -10,7 +10,7 @@ class ProjectDetailsWizard(models.TransientModel):
     project_name = fields.Char('Project Name', compute='_compute_project_name')
 
     # Make task_ids editable by using inverse method
-    task_ids = fields.Many2many(
+    task_ids = fields.One2many(
         'gantt.task',
         string='All Tasks',
         compute='_compute_task_ids',
@@ -52,10 +52,32 @@ class ProjectDetailsWizard(models.TransientModel):
                 wizard.task_ids = self.env['gantt.task']
 
     def _inverse_task_ids(self):
-        """This method is called when task_ids is modified"""
-        # The changes are automatically saved to the original records
-        # because we're directly referencing gantt.task records
-        pass
+        """Save changes made to task_ids back to the gantt.task model"""
+        for wizard in self:
+            for task in wizard.task_ids:
+                if task.id:  # Existing task
+                    task.write({
+                        'name': task.name,
+                        'lead': task.lead.id if task.lead else False,
+                        'start_date': task.start_date,
+                        'end_date': task.end_date,
+                        'progress': task.progress,
+                        'priority': task.priority,
+                        'dependencies': task.dependencies,
+                        'description': task.description,
+                    })
+                else:  # New task
+                    self.env['gantt.task'].create({
+                        'wbs': task.wbs,
+                        'name': task.name,
+                        'lead': task.lead.id if task.lead else False,
+                        'start_date': task.start_date,
+                        'end_date': task.end_date,
+                        'progress': task.progress,
+                        'priority': task.priority,
+                        'dependencies': task.dependencies,
+                        'description': task.description,
+                    })
 
     @api.depends('task_ids')
     def _compute_completed_tasks(self):
@@ -139,8 +161,7 @@ class ProjectDetailsWizard(models.TransientModel):
 
     def action_save_and_close(self):
         """Save all changes and close the wizard"""
-        # Changes are automatically saved due to inverse method
-        # Just close the wizard
+        self._inverse_task_ids()  # Save the changes
         return {'type': 'ir.actions.act_window_close'}
 
     def action_refresh(self):
