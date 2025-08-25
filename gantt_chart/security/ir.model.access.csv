@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_gantt_task_user,gantt.task.user,model_gantt_task,base.group_user,1,1,1,1
 access_gantt_task_manager,gantt.task.manager,model_gantt_task,base.group_system,1,1,1,1
 access_project_details_wizard_user,project.details.wizard.user,model_project_details_wizard,base.group_user,1,1,1,1
+access_project_task_line_user,project.task.line.user,model_project_task_line,base.group_user,1,1,1,1
+access_project_task_line_manager,project.task.line.manager,model_project_task_line,base.group_system,1,1,1,1

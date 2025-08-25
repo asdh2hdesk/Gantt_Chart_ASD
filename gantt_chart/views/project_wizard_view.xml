@@ -98,7 +98,7 @@
                                           create="true"
                                           delete="true"
                                           decoration-success="progress == 100"
-                                          decoration-warning="progress &gt; 0 and progress &lt; 100"
+                                          decoration-warning="progress &gt; 0 and progress &lt; 100">
                                         <field name="wbs" string="S. no."/>
                                         <field name="name" required="1"/>
                                         <field name="lead"/>
