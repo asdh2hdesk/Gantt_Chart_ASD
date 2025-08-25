@@ -8,33 +8,28 @@
             <field name="arch" type="xml">
                 <form string="Project Details">
                     <header>
-<!--                        <button name="action_create_task"-->
-<!--                                string="Create New Task"-->
-<!--                                type="object"-->
-<!--                                class="btn-primary"-->
-<!--                                icon="fa-plus"/>-->
                         <button name="action_open_gantt"
                                 string="Open Gantt Chart"
                                 type="object"
                                 class="btn-secondary"
                                 icon="fa-bar-chart"/>
-<!--                        <button name="action_export_project"-->
-<!--                                string="Export Project"-->
-<!--                                type="object"-->
-<!--                                class="btn-secondary"-->
-<!--                                icon="fa-download"/>-->
                         <button name="action_refresh"
                                 string="Refresh"
                                 type="object"
                                 class="btn-secondary"
                                 icon="fa-refresh"/>
+<!--                        <button name="action_create_task"-->
+<!--                                string="Add New Task"-->
+<!--                                type="object"-->
+<!--                                class="btn-primary"-->
+<!--                                icon="fa-plus"/>-->
                     </header>
                     <sheet>
+                        <!-- Hidden project_id field for context -->
+                        <field name="project_id" invisible="1"/>
+
                         <!-- Project Summary Card -->
                         <div class="oe_title">
-<!--                            <h1>-->
-<!--                                <field name="project_name" readonly="1"/>-->
-<!--                            </h1>-->
                             <h3>
                                 Project: <field name="wbs_root" readonly="1" class="oe_inline"/>
                             </h3>
@@ -88,47 +83,31 @@
                             </group>
                             <group>
                                 <field name="project_duration" readonly="1" string="Duration (Days)"/>
-<!--                                <field name="overall_progress" readonly="1" widget="percentage"/>-->
                             </group>
                         </group>
 
-                        <!-- Progress Visualization -->
-<!--                        <group string="Progress Overview">-->
-<!--                            <div class="progress" style="height: 30px; margin: 10px 0;">-->
-<!--&lt;!&ndash;                                <div class="progress-bar progress-bar-success"&ndash;&gt;-->
-<!--&lt;!&ndash;                                     t-att-style="'width: ' + str(record.overall_progress.raw_value or 0) + '%'">&ndash;&gt;-->
-<!--&lt;!&ndash;                                    <field name="overall_progress"/>% Complete&ndash;&gt;-->
-<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
-<!--                            </div>-->
-<!--                        </group>-->
-
-                        <!-- Task List -->
+                        <!-- Task Management -->
                         <notebook>
-                            <page string="All Tasks" name="all_tasks">
-                                <field name="task_ids" mode="tree">
+                            <!-- Editable Task Lines - Make this the first tab -->
+                            <page string="All Tasks" name="edit_tasks">
+                                <field name="task_line_ids"
+                                       widget="one2many"
+                                       context="{'default_wizard_id': active_id, 'default_project_id': project_id}">
                                     <tree string="Project Tasks"
                                           editable="bottom"
                                           create="true"
-                                          delete="false">
-                                        <field name="wbs" required="1"/>
+                                          delete="true"
+                                          decoration-success="progress == 100"
+                                          decoration-warning="progress &gt; 0 and progress &lt; 100"
+                                        <field name="wbs" string="S. no."/>
                                         <field name="name" required="1"/>
                                         <field name="lead"/>
                                         <field name="start_date" required="1"/>
                                         <field name="end_date" required="1"/>
                                         <field name="duration" readonly="1"/>
                                         <field name="progress"/>
-                                        <field name="priority"/>
                                         <field name="is_delayed" invisible="1"/>
-<!--                                        <button name="action_edit_task"-->
-<!--                                                string="Edit"-->
-<!--                                                type="object"-->
-<!--                                                icon="fa-edit"-->
-<!--                                                class="btn-primary btn-sm"/>-->
-                                        <button name="action_delete_task"
-                                                type="object"
-                                                icon="fa-trash"
-                                                class="btn-danger btn-sm"
-                                                confirm="Are you sure you want to delete this task?"/>
+                                        <field name="original_task_id" invisible="1"/>
                                     </tree>
                                 </field>
                             </page>
@@ -142,40 +121,25 @@
                                         <field name="start_date"/>
                                         <field name="end_date"/>
                                         <field name="duration"/>
-                                        <field name="progress"/>
+                                        <field name="progress" widget="progressbar"/>
                                     </tree>
                                 </field>
                             </page>
 
                             <page string="Delayed Tasks" name="delayed_tasks">
                                 <field name="delayed_task_ids" readonly="1">
-                                    <tree string="Delayed Tasks">
+                                    <tree string="Delayed Tasks" decoration-danger="is_delayed">
                                         <field name="wbs"/>
                                         <field name="name"/>
                                         <field name="lead"/>
                                         <field name="start_date"/>
                                         <field name="end_date"/>
                                         <field name="duration"/>
-                                        <field name="progress"/>
-                                        <field name="priority"/>
+                                        <field name="progress" widget="progressbar"/>
+                                        <field name="is_delayed" invisible="1"/>
                                     </tree>
                                 </field>
                             </page>
-
-<!--                            <page string="Critical Path" name="critical_path">-->
-<!--                                <field name="critical_task_ids" readonly="1">-->
-<!--                                    <tree string="Critical Tasks">-->
-<!--                                        <field name="wbs"/>-->
-<!--                                        <field name="name"/>-->
-<!--                                        <field name="lead"/>-->
-<!--                                        <field name="start_date"/>-->
-<!--                                        <field name="end_date"/>-->
-<!--                                        <field name="duration"/>-->
-<!--                                        <field name="progress" widget="percentage"/>-->
-<!--                                        <field name="dependencies"/>-->
-<!--                                    </tree>-->
-<!--                                </field>-->
-<!--                            </page>-->
                         </notebook>
                     </sheet>
                     <footer>
@@ -198,6 +162,26 @@
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_project_details_wizard_form"/>
             <field name="target">new</field>
+        </record>
+
+        <!-- Optional: Separate tree view for task lines -->
+        <record id="view_project_task_line_tree" model="ir.ui.view">
+            <field name="name">project.task.line.tree</field>
+            <field name="model">project.task.line</field>
+            <field name="arch" type="xml">
+                <tree string="Task Lines" editable="bottom" create="true" delete="true">
+                    <field name="wbs" required="1"/>
+                    <field name="name" required="1"/>
+                    <field name="lead"/>
+                    <field name="start_date" required="1"/>
+                    <field name="end_date" required="1"/>
+                    <field name="duration" readonly="1"/>
+                    <field name="progress"/>
+                    <field name="dependencies"/>
+                    <field name="is_delayed" invisible="1"/>
+                    <field name="original_task_id" invisible="1"/>
+                </tree>
+            </field>
         </record>
     </data>
 </odoo>

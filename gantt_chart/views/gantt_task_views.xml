@@ -14,13 +14,13 @@
                     <field name="lead"/>
                     <field name="duration" string="Duration (Days)" class="text-left"/>
                     <field name="overall_progress" widget="progressbar" class="text-left"/>
-                    <field name="priority"/>
                     <button name="open_project_details"
-                            string="Project Details"
-                            type="object"
-                            class="btn-info"
-                            icon="fa-info-circle"
-                            help="View complete project details, tasks, and statistics"/>
+                        string="Project Details"
+                        type="object"
+                        class="btn-info"
+                        icon="fa-info-circle"
+                        context="{'default_project_id': active_id, 'default_wbs_root': wbs}"/>
+
                     <button name="gantt_chart.action_combined_gantt_chart_client"
                             string="Open Gantt"
                             type="action"
